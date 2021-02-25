@@ -14,6 +14,24 @@
 
       <v-spacer/>
 
+      <v-btn
+        icon
+        v-if="readListsCount > 0 && !libraryNavigationVisible"
+        :to="{name: 'browse-readlists', params: {libraryId: libraryId}}"
+        :title="$t('library_navigation.readlists')"
+      >
+        <v-icon>mdi-book-multiple</v-icon>
+      </v-btn>
+
+      <v-btn
+        icon
+        v-if="collectionsCount > 0 && !libraryNavigationVisible"
+        :to="{name: 'browse-collections', params: {libraryId: libraryId}}"
+        :title="$t('library_navigation.collections')"
+      >
+        <v-icon>mdi-layers-triple</v-icon>
+      </v-btn>
+
       <page-size-select v-model="pageSize"/>
 
       <v-btn icon @click="drawer = !drawer">
@@ -30,7 +48,16 @@
       @edit="editMultipleSeries"
     />
 
-    <library-navigation :libraryId="libraryId"/>
+    <library-navigation
+      :libraryId="libraryId"
+      v-observe-visibility="{
+        callback: visibilityChanged,
+        throttle,
+        intersection: {
+          threshold,
+        },
+      }"
+    />
 
     <filter-drawer v-model="drawer">
       <template v-slot:default>
@@ -152,11 +179,16 @@ export default Vue.extend({
         ageRating: [],
         releaseDate: [],
       } as FiltersActive,
+      libraryNavigationVisible: true,
       sortUnwatch: null as any,
       filterUnwatch: null as any,
       pageUnwatch: null as any,
       pageSizeUnwatch: null as any,
       drawer: false,
+      throttle: 0,
+      threshold: 0,
+      collectionsCount: 0,
+      readListsCount: 0,
       filterOptions: {
         genre: [] as NameValue[],
         tag: [] as NameValue[],
@@ -204,6 +236,7 @@ export default Vue.extend({
     if (this.$route.query.pageSize) this.pageSize = Number(this.$route.query.pageSize)
 
     this.loadLibrary(this.libraryId)
+    this.loadCounts(this.libraryId)
 
     this.setWatches()
   },
@@ -284,6 +317,14 @@ export default Vue.extend({
     },
   },
   methods: {
+    async loadCounts (libraryId: string) {
+      const lib = libraryId !== LIBRARIES_ALL ? [libraryId] : undefined
+      this.collectionsCount = (await this.$komgaCollections.getCollections(lib, { size: 1 })).totalElements
+      this.readListsCount = (await this.$komgaReadLists.getReadLists(lib, { size: 1 })).totalElements
+    },
+    visibilityChanged: function (isVisible: boolean, entry: any) {
+      this.libraryNavigationVisible = isVisible
+    },
     cookieSort(libraryId: string): string {
       return `library.sort.${libraryId}`
     },

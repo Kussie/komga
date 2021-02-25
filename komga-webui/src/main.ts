@@ -18,6 +18,7 @@ import komgaReferential from './plugins/komga-referential.plugin'
 import komgaSeries from './plugins/komga-series.plugin'
 import komgaUsers from './plugins/komga-users.plugin'
 import vuetify from './plugins/vuetify'
+import VueObserveVisibility from 'vue-observe-visibility'
 import './public-path'
 import router from './router'
 import store from './store'
@@ -27,6 +28,7 @@ Vue.use(Vuelidate)
 Vue.use(lineClamp)
 Vue.use(VueCookies)
 Vue.use(require('vue-moment'))
+Vue.use(VueObserveVisibility)
 
 Vue.use(httpPlugin)
 Vue.use(komgaFileSystem, { http: Vue.prototype.$http })
